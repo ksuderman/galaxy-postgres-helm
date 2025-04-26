@@ -1,0 +1,14 @@
+apiVersion: v2
+name: galaxy-postgres-helm
+description: Create a Galaxy Postgres database
+type: application
+version: 0.1.0
+appVersion: "17.2"
+icon: https://galaxyproject.org/images/galaxy-logos/galaxy_project_logo_square.png
+dependencies:
+  - name: cloudnative-pg
+    repository: https://cloudnative-pg.github.io/charts/
+    version: 0.23.0
+    condition: operator.deploy
+    # cannot alias due to: https://github.com/cloudnative-pg/charts/issues/351
+    # alias: postgresql

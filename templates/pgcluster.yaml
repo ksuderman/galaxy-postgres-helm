@@ -1,0 +1,49 @@
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  labels:
+    {{- include "galaxy-postgres-helm.labels" . | nindent 4 }}
+  #name: {{ include "galaxy-postgres-helm.fullname" . }}
+  name: {{ .Release.Namespace }}-{{ .Release.Name }}-cluster  # name of the cluster}}
+  namespace: {{ .Release.Namespace }}
+spec:
+  instances: {{ default "1" .Values.instances }}
+  {{- if .Values.image }}
+  imageName: {{ .Values.image }}
+  {{- end }}
+  bootstrap:
+{{- if .Values.recovery }}
+    recovery:
+      source: clusterBackup
+  externalClusters:
+  - name: clusterBackup
+    barmanObjectStore:
+      destinationPath: {{ .Values.backup.bucket }}
+      {{- toYaml .Values.backup.credentials | nindent 6 }}
+{{- else }}
+    initdb:
+      database: {{ .Values.database.name }}
+      owner: {{ .Values.database.owner }}
+      secret:
+        name: {{ include "galaxy-postgres-helm.galaxy-credentials" . }}
+{{- end }}
+{{- if and .Values.backup.enabled (not .Values.recovery) }}
+  backup:
+    barmanObjectStore:
+      destinationPath: {{ .Values.backup.bucket }}
+      {{- toYaml .Values.backup.credentials | nindent 6 }}
+{{- end }}
+  enableSuperuserAccess: true
+  superuserSecret:
+    name: {{ include "galaxy-postgres-helm.postgres-credentials" . }}
+  storage:
+    pvcTemplate:
+      volumeName: {{ include "galaxy-postgres-helm.pv" . }}
+      volumeMode: Filesystem
+      accessModes:
+      - {{ default "ReadWriteOnce" .Values.storage.accessMode }}
+      storageClassName: {{ default "standard" .Values.storage.storageClassName }}
+      resources:
+        requests:
+          storage: {{ default "10Gi" .Values.storage.size }}
