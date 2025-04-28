@@ -1,9 +1,3 @@
-# Galaxy Postgres Helm
-A Helm chart to install the CNPG operator and a Postgres database cluster. Installation of the operator is optional and is only needed if the operator is not already installed in the cluster.
-
-
-## Values
-
 | Key | Description |
 |-----|-------------|
 | instances | The number of Postgres instances in the cluster |
